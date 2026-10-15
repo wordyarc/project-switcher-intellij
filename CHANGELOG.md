@@ -2,6 +2,10 @@
 
 The plugin's published change notes come from the first section below.
 
+## 1.*.*
+
+- Fix Marketplace compatibility detection for the plugin's Compose dependency.
+
 ## 1.2.0
 
 - Installation works on 2026.3 EAP after a compatibility issue with reopening recent projects previously prevented it.

@@ -44,9 +44,9 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.compose</depends>
 
     <dependencies>
+        <module name="intellij.platform.compose"/>
         <module name="intellij.platform.frontend"/>
     </dependencies>
 
