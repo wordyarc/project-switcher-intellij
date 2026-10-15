@@ -12,6 +12,7 @@ internal fun open(name: String, isCurrent: Boolean = false) = ProjectItem.Open(
     path = "/projects/$name",
     location = "~/projects/$name",
     branch = null,
+    isWorktree = false,
     isCurrent = isCurrent,
 )
 
@@ -20,6 +21,7 @@ internal fun recent(name: String, location: String = "~/projects/$name") = Proje
     path = "/projects/$name",
     location = location,
     branch = null,
+    isWorktree = false,
 )
 
 internal object StubBitmap : ImageBitmap {

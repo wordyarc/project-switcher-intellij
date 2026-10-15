@@ -186,6 +186,7 @@ class ProjectOpenerTest {
         path = path.invariantSeparatorsPathString,
         location = path.invariantSeparatorsPathString,
         branch = null,
+        isWorktree = false,
     )
 
     private fun openItem(project: Project) = ProjectItem.Open(
@@ -194,6 +195,7 @@ class ProjectOpenerTest {
         path = project.basePath.orEmpty(),
         location = project.basePath.orEmpty(),
         branch = null,
+        isWorktree = false,
         isCurrent = false,
     )
 

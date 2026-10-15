@@ -40,7 +40,7 @@ internal class FakeProjectActions(
         closed += project
         projects = ProjectList(
             open = projects.open - project,
-            recent = projects.recent + ProjectItem.Recent(project.displayName, project.path, project.location, project.branch),
+            recent = projects.recent + with(project) { ProjectItem.Recent(displayName, path, location, branch, isWorktree) },
         )
     }
 

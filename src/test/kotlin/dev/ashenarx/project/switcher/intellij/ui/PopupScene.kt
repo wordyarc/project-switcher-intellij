@@ -111,6 +111,9 @@ internal class PopupScene(
     fun boundsOf(text: String): Rect? =
         scene.semanticsOwners.firstNotNullOfOrNull { it.unmergedRootSemanticsNode.find(text) }?.boundsInRoot
 
+    fun imagesDescribed(description: String): List<Rect> =
+        scene.semanticsOwners.flatMap { it.unmergedRootSemanticsNode.described(description) }.map { it.boundsInRoot }
+
     override fun close() {
         scene.close()
     }
@@ -151,6 +154,11 @@ internal class PopupScene(
         if (texts.any { it.text == text }) return this
 
         return children.firstNotNullOfOrNull { it.find(text) }
+    }
+
+    private fun SemanticsNode.described(description: String): List<SemanticsNode> {
+        val descriptions = config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
+        return listOfNotNull(takeIf { description in descriptions }) + children.flatMap { it.described(description) }
     }
 
     private companion object {

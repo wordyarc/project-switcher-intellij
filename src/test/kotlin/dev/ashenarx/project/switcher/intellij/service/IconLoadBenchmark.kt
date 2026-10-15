@@ -32,7 +32,9 @@ class IconLoadBenchmark {
         println("collect    cold : ${collectCold.inWholeMilliseconds} ms")
         println("collect    warm : ${collectWarm.inWholeMilliseconds} ms")
 
-        val projects = paths.map { ProjectItem.Recent(displayName = it, path = it, location = it, branch = null) }
+        val projects = paths.map {
+            ProjectItem.Recent(displayName = it, path = it, location = it, branch = null, isWorktree = false)
+        }
 
         val cold = measureTime { loader.loadIcons(projects) { _, _ -> } }
         println("loadIcons  before warm up : ${cold.inWholeMilliseconds} ms")

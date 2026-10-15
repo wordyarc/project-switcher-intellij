@@ -97,6 +97,7 @@ class SelectionTest {
         path = "/$name",
         location = "/$name",
         branch = null,
+        isWorktree = false,
         isCurrent = isCurrent,
     )
 
@@ -105,5 +106,6 @@ class SelectionTest {
         path = "/$name",
         location = "/$name",
         branch = null,
+        isWorktree = false,
     )
 }

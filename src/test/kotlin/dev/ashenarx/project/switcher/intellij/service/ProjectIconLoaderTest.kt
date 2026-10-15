@@ -69,6 +69,6 @@ class ProjectIconLoaderTest {
 
     private fun projects(vararg names: String): List<ProjectItem> = names.map { name ->
         val path = tempDir.get().resolve(name).createDirectories().invariantSeparatorsPathString
-        ProjectItem.Recent(displayName = name, path = path, location = path, branch = null)
+        ProjectItem.Recent(displayName = name, path = path, location = path, branch = null, isWorktree = false)
     }
 }

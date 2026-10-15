@@ -19,10 +19,12 @@ import com.intellij.util.SystemProperties
 import dev.ashenarx.project.switcher.intellij.model.ProjectItem
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.invariantSeparatorsPathString
 
@@ -33,6 +35,7 @@ class ProjectCatalogTest {
         // The sorting test needs this casing.
         val zebra = indexedProjectFixture("Zebra")
         val apple = indexedProjectFixture("apple")
+        val worktree = indexedProjectFixture("worktree", linkedWorktreeFixture("worktree"))
 
         val branchProviderEp =
             ExtensionPointName<RecentProjectsBranchesProvider>("com.intellij.recentProjectsBranchesProvider")
@@ -168,6 +171,33 @@ class ProjectCatalogTest {
     }
 
     @Test
+    fun `a project in a linked git worktree is marked in both sections`() = timeoutRunBlocking {
+        val main = gitCheckout(tempDir.get().resolve("main"))
+        val recentPath = linkedWorktree(main, tempDir.get().resolve("feature")).invariantSeparatorsPathString
+        seedRecent(recentPath, name = "feature")
+
+        val list = catalog.collect(currentProject = null)
+
+        assertTrue(
+            list.open.single { it.locationHash == worktree.get().locationHash }.isWorktree,
+            "an open worktree must carry the badge too",
+        )
+        assertTrue(list.recent.single { it.displayName == "feature" }.isWorktree)
+    }
+
+    @Test
+    fun `the main checkout of a repository with worktrees is not marked`() = timeoutRunBlocking {
+        val main = gitCheckout(tempDir.get().resolve("main"))
+        linkedWorktree(main, tempDir.get().resolve("feature"))
+        seedRecent(main.invariantSeparatorsPathString, name = "main")
+
+        assertFalse(
+            catalog.collect(currentProject = null).recent.single().isWorktree,
+            "the badge tells a worktree apart from the repository it was created from",
+        )
+    }
+
+    @Test
     fun `when the recent list cannot be built the open projects are still listed`(
         @TestDisposable disposable: Disposable,
     ) = timeoutRunBlocking {
@@ -253,8 +283,16 @@ class ProjectCatalogTest {
     }
 }
 
-private fun indexedProjectFixture(name: String): TestFixture<Project> = testFixture {
-    val project = projectFixture(tempPathFixture(subdirName = name), openAfterCreation = true).init()
+private fun indexedProjectFixture(
+    name: String,
+    path: TestFixture<Path> = tempPathFixture(subdirName = name),
+): TestFixture<Project> = testFixture {
+    val project = projectFixture(path, openAfterCreation = true).init()
     IndexingTestUtil.suspendUntilIndexesAreReady(project)
     initialized(project) {}
+}
+
+private fun linkedWorktreeFixture(name: String): TestFixture<Path> = testFixture {
+    val root = tempPathFixture().init()
+    initialized(linkedWorktree(gitCheckout(root.resolve("main")), root.resolve(name))) {}
 }

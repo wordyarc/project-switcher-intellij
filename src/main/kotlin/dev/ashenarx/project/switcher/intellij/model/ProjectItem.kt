@@ -6,6 +6,7 @@ sealed interface ProjectItem {
     val path: String
     val location: String
     val branch: String?
+    val isWorktree: Boolean
 
     val isCurrent: Boolean get() = false
 
@@ -15,6 +16,7 @@ sealed interface ProjectItem {
         override val path: String,
         override val location: String,
         override val branch: String?,
+        override val isWorktree: Boolean,
         override val isCurrent: Boolean,
     ) : ProjectItem {
         override val id: String get() = "open:$locationHash"
@@ -25,6 +27,7 @@ sealed interface ProjectItem {
         override val path: String,
         override val location: String,
         override val branch: String?,
+        override val isWorktree: Boolean,
     ) : ProjectItem {
         override val id: String get() = "recent:$path"
     }

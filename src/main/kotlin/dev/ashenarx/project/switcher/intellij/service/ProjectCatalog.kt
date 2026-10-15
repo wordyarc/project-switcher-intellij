@@ -21,6 +21,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Service(Service.Level.APP)
@@ -49,6 +51,7 @@ class ProjectCatalog(private val coroutineScope: CoroutineScope) {
 
         val openProjects = ProjectManager.getInstance().openProjects.filter { !it.isDisposed }
         val openPaths = openProjects.mapTo(mutableSetOf()) { pathOf(it) }
+        val worktrees = linkedWorktrees(openPaths + localActions.keys)
 
         val open = openProjects
             .map { project ->
@@ -62,6 +65,7 @@ class ProjectCatalog(private val coroutineScope: CoroutineScope) {
                         path = path,
                         location = presentableProjectPath(path),
                         branch = action?.branchName,
+                        isWorktree = path in worktrees,
                         isCurrent = project == currentProject,
                     ),
                     activatedAt = action?.activationTimestamp,
@@ -79,25 +83,15 @@ class ProjectCatalog(private val coroutineScope: CoroutineScope) {
                     path = action.normalizedPath,
                     location = presentableProjectPath(action.normalizedPath),
                     branch = action.branchName,
+                    isWorktree = action.normalizedPath in worktrees,
                 )
             }
 
         ProjectList(open = open, recent = recent).also { last = it }
     }
 
-    suspend fun missing(paths: Collection<String>): Set<String> {
-        val checks = paths
-            .filter { it.isLocalProjectPath() }
-            .associateWith { path -> coroutineScope.async(PATH_CHECKS) { Files.notExists(Path.of(path)) } }
-
-        withTimeoutOrNull(MISSING_CHECK_TIMEOUT) { checks.values.joinAll() }
-
-        val gone = mutableSetOf<String>()
-        for ((path, check) in checks) {
-            if (check.isCompleted && check.await()) gone += path
-        }
-        return gone
-    }
+    suspend fun missing(paths: Collection<String>): Set<String> =
+        localPathsWhere(paths, MISSING_CHECK_TIMEOUT) { Files.notExists(it) }
 
     fun forget(path: String) {
         service<RecentProjectsManager>().removePath(path)
@@ -123,6 +117,27 @@ class ProjectCatalog(private val coroutineScope: CoroutineScope) {
             emptyList()
         }
 
+    private suspend fun linkedWorktrees(paths: Collection<String>): Set<String> =
+        localPathsWhere(paths, WORKTREE_CHECK_TIMEOUT, Path::isInLinkedGitWorktree)
+
+    private suspend fun localPathsWhere(
+        paths: Collection<String>,
+        timeout: Duration,
+        predicate: (Path) -> Boolean,
+    ): Set<String> {
+        val checks = paths
+            .filter { it.isLocalProjectPath() }
+            .associateWith { path -> coroutineScope.async(PATH_CHECKS) { predicate(Path.of(path)) } }
+
+        withTimeoutOrNull(timeout) { checks.values.joinAll() }
+
+        val matching = mutableSetOf<String>()
+        for ((path, check) in checks) {
+            if (check.isCompleted && check.await()) matching += path
+        }
+        return matching
+    }
+
     private fun pathOf(project: Project): String =
         (project.basePath ?: project.projectFilePath.orEmpty()).toProjectPath()
 
@@ -136,6 +151,8 @@ class ProjectCatalog(private val coroutineScope: CoroutineScope) {
         private val PATH_CHECKS = Dispatchers.IO.limitedParallelism(4)
 
         private val MISSING_CHECK_TIMEOUT = 1.seconds
+
+        private val WORKTREE_CHECK_TIMEOUT = 500.milliseconds
 
         fun getInstance(): ProjectCatalog = service()
     }

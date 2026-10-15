@@ -18,7 +18,8 @@ class IconSizePassesTest {
 
     @Test
     fun `an open project and its recent entry share one icon`() {
-        val open = ProjectItem.Open("hash", "first", "/first", "~/first", branch = null, isCurrent = false)
+        val open =
+            ProjectItem.Open("hash", "first", "/first", "~/first", branch = null, isWorktree = false, isCurrent = false)
 
         assertEquals(listOf(open), distinctIconItems(listOf(open, recent("/first"))))
     }
@@ -61,5 +62,6 @@ class IconSizePassesTest {
         assertEquals(listOf(20), iconSizePasses(-1f))
     }
 
-    private fun recent(path: String) = ProjectItem.Recent(displayName = path, path = path, location = path, branch = null)
+    private fun recent(path: String) =
+        ProjectItem.Recent(displayName = path, path = path, location = path, branch = null, isWorktree = false)
 }

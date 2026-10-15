@@ -220,6 +220,47 @@ class ProjectSwitcherPopupTest {
         assertEquals(listOf(SwitchOutcome.Reopen(recent("beta"), OpenTarget.CurrentWindow)), outcomes)
     }
 
+    @Test
+    fun `a worktree carries a badge in front of its branch and other rows do not`() {
+        val model = loadedModel(
+            ProjectList(
+                open = listOf(open("alpha").copy(branch = "main")),
+                recent = listOf(recent("beta").copy(branch = "feature/badge", isWorktree = true)),
+            ),
+        )
+
+        runInEdtAndWait {
+            popup(model, PopupAppearance()).use { scene ->
+                scene.frames()
+
+                val badges = scene.imagesDescribed("Git worktree")
+                assertEquals(1, badges.size, "only the worktree row may carry the badge")
+
+                val badge = badges.single()
+                val branch = checkNotNull(scene.boundsOf("feature/badge")) { "the worktree's branch must be shown" }
+                assertTrue(badge.right <= branch.left, "the badge stands in front of the branch it belongs to")
+                assertTrue(badge.center.y in branch.top..branch.bottom, "the badge must be on the worktree's row")
+            }
+        }
+    }
+
+    @Test
+    fun `a worktree without a known branch still carries the badge`() {
+        val model = loadedModel(ProjectList(open = emptyList(), recent = listOf(recent("beta").copy(isWorktree = true))))
+
+        runInEdtAndWait {
+            popup(model, PopupAppearance()).use { scene ->
+                scene.frames()
+
+                assertEquals(
+                    1,
+                    scene.imagesDescribed("Git worktree").size,
+                    "a detached HEAD or a hidden branch name must not hide that the project is a worktree",
+                )
+            }
+        }
+    }
+
     @ParameterizedTest(name = "search field: {0}")
     @ValueSource(booleans = [false, true])
     fun `with close on delete, backspace erases the search before it removes the row picked after it`(searchField: Boolean) {

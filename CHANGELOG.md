@@ -4,6 +4,7 @@ The plugin's published change notes come from the first section below.
 
 ## 1.*.*
 
+- A badge next to the branch name marks projects that live in a linked Git worktree.
 - Fix Marketplace compatibility detection for the plugin's Compose dependency.
 
 ## 1.2.0

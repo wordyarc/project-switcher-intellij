@@ -8,6 +8,7 @@ internal object Dimens {
     val IconSize = 20.dp
     val IconGap = 6.dp
     val MetadataGap = 8.dp
+    val BadgeGap = 4.dp
 
     val MaxBranchWidth = 160.dp
 

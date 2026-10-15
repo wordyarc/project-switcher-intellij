@@ -158,6 +158,7 @@ class ProjectListTest {
         path = location,
         location = location,
         branch = null,
+        isWorktree = false,
         isCurrent = isCurrent,
     )
 
@@ -166,5 +167,6 @@ class ProjectListTest {
         path = location,
         location = location,
         branch = null,
+        isWorktree = false,
     )
 }

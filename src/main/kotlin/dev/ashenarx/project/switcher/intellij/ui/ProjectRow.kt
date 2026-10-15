@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,11 +44,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.ashenarx.project.switcher.intellij.ProjectSwitcherBundle
 import dev.ashenarx.project.switcher.intellij.model.Highlights
 import dev.ashenarx.project.switcher.intellij.model.OpenTarget
 import dev.ashenarx.project.switcher.intellij.model.ProjectItem
 import org.jetbrains.jewel.bridge.retrieveColorOrNull
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.styling.SearchMatchStyle
 import org.jetbrains.jewel.ui.theme.searchMatchStyle
@@ -140,16 +143,32 @@ internal fun ProjectRow(
                 modifier = Modifier.weight(1f),
             )
 
-            item.branch?.let { branch ->
+            if (item.isWorktree || item.branch != null) {
                 Spacer(Modifier.width(Dimens.MetadataGap))
-                Text(
-                    text = branch,
-                    color = secondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.StartEllipsis,
-                    modifier = Modifier.widthIn(max = Dimens.MaxBranchWidth),
-                )
+                GitMetadata(item, color = secondary)
             }
+        }
+    }
+}
+
+@Composable
+private fun GitMetadata(item: ProjectItem, color: Color) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(Dimens.BadgeGap),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (item.isWorktree) {
+            Icon(key = SwitcherIcons.Worktree, contentDescription = ProjectSwitcherBundle.message("popup.worktree"))
+        }
+
+        item.branch?.let { branch ->
+            Text(
+                text = branch,
+                color = color,
+                maxLines = 1,
+                overflow = TextOverflow.StartEllipsis,
+                modifier = Modifier.widthIn(max = Dimens.MaxBranchWidth),
+            )
         }
     }
 }

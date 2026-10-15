@@ -10,6 +10,7 @@ class HighlightsTest {
         path = "/home/me/switcher",
         location = "~/switcher",
         branch = null,
+        isWorktree = false,
     )
 
     @Test
