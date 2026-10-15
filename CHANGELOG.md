@@ -2,7 +2,7 @@
 
 The plugin's published change notes come from the first section below.
 
-## 1.*.*
+## 1.3.0
 
 - A badge next to the branch name marks projects that live in a linked Git worktree.
 - Fix Marketplace compatibility detection for the plugin's Compose dependency.
